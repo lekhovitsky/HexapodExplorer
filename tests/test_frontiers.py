@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import sys
 import pickle
@@ -7,7 +6,6 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.append("..")
 from explorer import Planner
 from utils import point_to_pose
 

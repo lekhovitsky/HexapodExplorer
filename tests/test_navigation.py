@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import sys
 import time
 import matplotlib.pyplot as plt
 
-sys.path.append("..")
 import controller
 from messages import Path, Pose, Vector3, Quaternion
 

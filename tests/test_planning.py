@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import sys
 import pickle
 
 import matplotlib.pyplot as plt
 
-sys.path.append("..")
 from explorer import Planner
 
 ROBOT_SIZE = 0.3

@@ -11,7 +11,7 @@ from controller import HexapodController
 
 from .mapper import Mapper
 from .planner import Planner
-from .const import ROBOT_SIZE, MAP_RESOLUTION, PLOTTING_STEP
+from .const import ROBOT_SIZE, MAP_RESOLUTION, STEP_SIZE
 
 
 class Explorer:
@@ -92,7 +92,7 @@ class Explorer:
 
     @property
     def _last_valid_pose(self) -> Optional[Pose]:
-        """Get robot's last valid pose.
+        """Get the last valid robot's pose.
 
         Since it might happen that the robot entries an area considered as grown
         obstacle by the planner due to imperfect robot maneuverability, this point
@@ -101,6 +101,17 @@ class Explorer:
         for pose in chain([self.pose], reversed(self.executed_path.poses)):
             if self.planner.is_pose_reachable(pose):
                 return pose
+
+    def _record_pose(self):
+        """Save the current robot's pose.
+
+        Happens after reaching some distance from the last previously recorded pose.
+        """
+        if (
+            not self.executed_path.poses
+            or self.pose.dist(self.executed_path.poses[-1]) > STEP_SIZE
+        ):
+            self.executed_path.poses.append(self.pose.copy())
 
     def mapping(self):
         while not self.done:
@@ -123,11 +134,11 @@ class Explorer:
             self.planner.update_gridmap(self.map)
 
             if not self._is_goal_valid():
-                print("Planning the new goal..")
+                print("Planning the new goal")
                 self._plan_goal()
 
             if not self._is_path_valid():
-                print("Planning the path to the goal...")
+                print("Planning the path to the goal")
                 self._plan_path()
 
             time.sleep(1)
@@ -151,9 +162,10 @@ class Explorer:
                     self.planned_path.poses.pop(0)  # arrived to this waypoint
                     if self.planned_path.poses:
                         waypoint = self.planned_path.poses[0]  # new waypoint
-                        print(f"New waypoint: {waypoint.position}")
+                        print(f"Next waypoint: {waypoint.position}")
                         self.controller.goto(waypoint)
                     else:
+                        print("Goal reached")
                         self.goal = None  # signal that we need a new goal
                     self.lock.release()
 
@@ -162,7 +174,8 @@ class Explorer:
     def _is_goal_valid(self) -> bool:
         if self.done or self.goal is None:
             return False
-        return self.planner.is_pose_reachable(self.pose)
+        # return self.planner.is_pose_reachable(self.pose)
+        return True
 
     def _is_path_valid(self) -> bool:
         if self.done or self.goal is None or not self.planned_path.poses:
@@ -170,7 +183,6 @@ class Explorer:
         return self.planner.is_path_executable(self.planned_path)
 
     def _plan_goal(self):
-        print("Detecting free-edge frontiers...")
         # compute utility of a frontier as the ratio of information gain and path length
         frontiers = self.planner.find_frontiers()
         inf_gain, path_lengths = self.planner.find_frontiers_inf_gain(
@@ -186,7 +198,7 @@ class Explorer:
             print(f"New goal: {frontier.position}")
             self.goal = frontier
         else:
-            print("No more reachable frontiers. Finishing exploration.")
+            print("No more reachable frontiers. Finishing exploration")
             self.done = True
         self.lock.release()
 
@@ -196,13 +208,15 @@ class Explorer:
 
         # plan the new path to the goal
         path, _ = self.planner.plan_path(self._last_valid_pose, self.goal)
-        print(f"Path found, {len(path.poses)-1} waypoints")
-
-        self.lock.acquire()
-        self.controller.stop()
-        self.planned_path = path
-        self.lock.release()
-
-    def _record_pose(self):
-        if not self.executed_path.poses or self.pose.dist(self.executed_path.poses[-1]) > PLOTTING_STEP:
-            self.executed_path.poses.append(self.pose.copy())
+        if path.poses:
+            self.lock.acquire()
+            print(f"Path found, {len(path.poses)-1} waypoints")
+            self.controller.stop()
+            self.planned_path = path
+            self.lock.release()
+        else:
+            self.lock.acquire()
+            print("Path not found dropping the goal")
+            self.controller.stop()
+            self.goal = None  # signal that we need a new goal
+            self.lock.release()
