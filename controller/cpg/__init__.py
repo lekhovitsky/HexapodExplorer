@@ -1,0 +1,1 @@
+from .oscillator_network import OscillatorNetwork, TRIPOD_GAIT_WEIGHTS
