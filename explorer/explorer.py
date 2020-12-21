@@ -66,7 +66,7 @@ class Explorer:
             sys.exit(1)
 
     def stop(self):
-        # stop navigation thread and turn off the robot
+        # turn off the robot
         self.controller.stop_navigation()
         self.controller.turn_off()
 
