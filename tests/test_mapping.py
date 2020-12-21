@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import sys
 import matplotlib.pyplot as plt
 
-sys.path.append("..")
 from explorer import Mapper
 from controller import HexapodController
 from messages import Pose, Vector3, Quaternion

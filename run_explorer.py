@@ -10,12 +10,9 @@ from messages import OccupancyGrid, Path
 
 
 def main():
-    # instantiate the robot
     ex0 = Explorer(0)
-    # start the locomotion
     ex0.start()
 
-    # continuously plot the map, planned and executed path
     fig, ax = plt.subplots()
     plt.ion()
 

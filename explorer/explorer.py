@@ -123,11 +123,11 @@ class Explorer:
             self.planner.update_gridmap(self.map)
 
             if not self._is_goal_valid():
-                print("Planning the new goal..")
+                print("Planning the new goal")
                 self._plan_goal()
 
             if not self._is_path_valid():
-                print("Planning the path to the goal...")
+                print("Planning the path to the goal")
                 self._plan_path()
 
             time.sleep(1)
@@ -151,9 +151,10 @@ class Explorer:
                     self.planned_path.poses.pop(0)  # arrived to this waypoint
                     if self.planned_path.poses:
                         waypoint = self.planned_path.poses[0]  # new waypoint
-                        print(f"New waypoint: {waypoint.position}")
+                        print(f"Next waypoint: {waypoint.position}")
                         self.controller.goto(waypoint)
                     else:
+                        print("Goal reached")
                         self.goal = None  # signal that we need a new goal
                     self.lock.release()
 
@@ -162,7 +163,8 @@ class Explorer:
     def _is_goal_valid(self) -> bool:
         if self.done or self.goal is None:
             return False
-        return self.planner.is_pose_reachable(self.pose)
+        # return self.planner.is_pose_reachable(self.pose)
+        return True
 
     def _is_path_valid(self) -> bool:
         if self.done or self.goal is None or not self.planned_path.poses:
@@ -170,7 +172,6 @@ class Explorer:
         return self.planner.is_path_executable(self.planned_path)
 
     def _plan_goal(self):
-        print("Detecting free-edge frontiers...")
         # compute utility of a frontier as the ratio of information gain and path length
         frontiers = self.planner.find_frontiers()
         inf_gain, path_lengths = self.planner.find_frontiers_inf_gain(
@@ -186,7 +187,7 @@ class Explorer:
             print(f"New goal: {frontier.position}")
             self.goal = frontier
         else:
-            print("No more reachable frontiers. Finishing exploration.")
+            print("No more reachable frontiers. Finishing exploration")
             self.done = True
         self.lock.release()
 
@@ -196,12 +197,18 @@ class Explorer:
 
         # plan the new path to the goal
         path, _ = self.planner.plan_path(self._last_valid_pose, self.goal)
-        print(f"Path found, {len(path.poses)-1} waypoints")
-
-        self.lock.acquire()
-        self.controller.stop()
-        self.planned_path = path
-        self.lock.release()
+        if path.poses:
+            self.lock.acquire()
+            print(f"Path found, {len(path.poses)-1} waypoints")
+            self.controller.stop()
+            self.planned_path = path
+            self.lock.release()
+        else:
+            self.lock.acquire()
+            print("Path not found dropping the goal")
+            self.controller.stop()
+            self.goal = None  # signal that we need a new goal
+            self.lock.release()
 
     def _record_pose(self):
         if not self.executed_path.poses or self.pose.dist(self.executed_path.poses[-1]) > PLOTTING_STEP:
