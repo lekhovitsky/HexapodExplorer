@@ -11,7 +11,7 @@ from controller import HexapodController
 
 from .mapper import Mapper
 from .planner import Planner
-from .const import ROBOT_SIZE, MAP_RESOLUTION, PLOTTING_STEP
+from .const import ROBOT_SIZE, MAP_RESOLUTION, STEP_SIZE
 
 
 class Explorer:
@@ -101,6 +101,17 @@ class Explorer:
         for pose in chain([self.pose], reversed(self.executed_path.poses)):
             if self.planner.is_pose_reachable(pose):
                 return pose
+
+    def _record_pose(self):
+        """Save the current robot's pose.
+
+        Happens after reaching some distance from the last previously recorded pose.
+        """
+        if (
+            not self.executed_path.poses
+            or self.pose.dist(self.executed_path.poses[-1]) > STEP_SIZE
+        ):
+            self.executed_path.poses.append(self.pose.copy())
 
     def mapping(self):
         while not self.done:
@@ -209,7 +220,3 @@ class Explorer:
             self.controller.stop()
             self.goal = None  # signal that we need a new goal
             self.lock.release()
-
-    def _record_pose(self):
-        if not self.executed_path.poses or self.pose.dist(self.executed_path.poses[-1]) > PLOTTING_STEP:
-            self.executed_path.poses.append(self.pose.copy())
