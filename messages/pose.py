@@ -14,9 +14,6 @@ class Pose(Message):
     position: Vector3 = field(default_factory=Vector3)
     orientation: Quaternion = field(default_factory=Quaternion)
 
-    def __repr__(self) -> str:
-        return f"Pose({self.position}, {self.orientation})"
-
     def copy(self) -> 'Pose':
         return copy.deepcopy(self)
 
