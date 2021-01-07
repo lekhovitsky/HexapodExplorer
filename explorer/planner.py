@@ -11,14 +11,15 @@ from messages import OccupancyGrid, Pose, Path, Odometry
 
 from .astar import AStar
 from .const import (
-    SENSOR, 
+    SENSOR, OBSTACLE_PENALTY_FACTOR,
     MIN_CELLS_PER_CENTROID,
     ASTAR_TOLERANCE_FACTOR,
-    OBSTACLE_GROWTH_FACTOR
+    OBSTACLE_GROWTH_FACTOR,
 )
 from utils import (
     pose_to_point, point_to_pose, points_to_path, path_to_points,
-    map_to_world, world_to_map, bresenham_line, path_length
+    bresenham_line, path_length, euclidean_distance,
+    map_to_world, world_to_map,
 )
 
 
@@ -42,6 +43,7 @@ class Planner:
     odometry: Odometry
     gridmap: OccupancyGrid
     maze: List[List[int]]
+    dist_to_obstacles: np.ndarray
 
     def __init__(self, robot_size: float):
         self.astar = AStar()
@@ -52,6 +54,7 @@ class Planner:
         assert gridmap.data.shape == (gridmap.height, gridmap.width)
         self.gridmap = gridmap.copy()
         self.maze = self._make_maze(self.gridmap, OBSTACLE_GROWTH_FACTOR * self.robot_size)
+        self.dist_to_obstacles = distance_transform_edt(self.gridmap.data < 0.5)
 
     def is_pose_reachable(self, pose: Pose) -> bool:
         """Test if a given pose can be reached (lies within the map and is far enough from obstacles)."""
@@ -221,7 +224,8 @@ class Planner:
                   start: Pose,
                   goal: Pose,
                   radius: Optional[float] = None,
-                  simplify: bool = True
+                  simplify: bool = True,
+                  robust: bool = True,
                   ) -> Tuple[Path, float]:
         """Plan a path from start to goal over a given map using A* algorithm.
 
@@ -238,6 +242,8 @@ class Planner:
             If True (default), simplifies the found path by reducing the amount
             of waypoints to the minimal necessary so that the path still doesn't
             collide with obstacles.
+        robust : bool, optional
+            If True (default), steers A* heuristic to avoid paths that are close to obstacles.
 
         Returns
         -------
@@ -255,6 +261,12 @@ class Planner:
 
         # transform start and goal from world coordinates to map coordinates
         start, goal = world_to_map([start, goal], self.gridmap)
+
+        # steer the A* heuristic for robust planning
+        def steered_heuristic(a: Tuple[int, int], b: Tuple[int, int]) -> float:
+            return euclidean_distance(a, b) + OBSTACLE_PENALTY_FACTOR / self.dist_to_obstacles[a[1], a[0]]
+
+        self.astar.heuristic = steered_heuristic if robust else euclidean_distance
 
         # find a path using A* search
         path = self.astar.search(

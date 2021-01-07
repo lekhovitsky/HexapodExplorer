@@ -24,5 +24,5 @@ class Path(Message):
             ys = [pose.position.y for pose in poses]
             ax.plot(xs, ys, color=color)
         else:
-            for pose in self.poses[::step]:
+            for pose in self.poses:
                 pose.plot(ax)

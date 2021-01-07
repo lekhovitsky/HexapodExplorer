@@ -59,10 +59,10 @@ class Explorer:
             sys.exit(1)
 
         try:
-            navigation_thread = threading.Thread(target=self.navigation)
-            navigation_thread.start()
+            trajectory_following_thread = threading.Thread(target=self.trajectory_following)
+            trajectory_following_thread.start()
         except:
-            print("Cannot start the navigation thread")
+            print("Cannot start the trajectory following thread")
             sys.exit(1)
 
     def stop(self):
@@ -143,7 +143,7 @@ class Explorer:
 
             time.sleep(1)
 
-    def navigation(self):
+    def trajectory_following(self):
         time.sleep(5)
         while not self.done:
             while not self.initialized:
@@ -216,7 +216,7 @@ class Explorer:
             self.lock.release()
         else:
             self.lock.acquire()
-            print("Path not found dropping the goal")
+            print("Path not found, dropping the goal")
             self.controller.stop()
             self.goal = None  # signal that we need a new goal
             self.lock.release()

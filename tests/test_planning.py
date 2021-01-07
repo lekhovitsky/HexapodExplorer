@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 import pickle
 
 import matplotlib.pyplot as plt
@@ -18,12 +17,14 @@ if __name__ == "__main__":
 
     for gridmap, start, goal in scenarios:
         planner.update_gridmap(gridmap)
-        path, _ = planner.plan_path(start, goal, radius=0, simplify=False)
-        simple_path, _ = planner.plan_path(start, goal, radius=0)
+        path, _ = planner.plan_path(start, goal, radius=0, simplify=False, robust=False)
+        robust_path, _ = planner.plan_path(start, goal, radius=0, simplify=False)
+        simple_path, _ = planner.plan_path(start, goal, radius=0, robust=False)
 
         fig, ax = plt.subplots()
         gridmap.plot(ax)
         path.plot(ax, line=True, color="green")
+        robust_path.plot(ax, line=True, color="blue")
         simple_path.plot(ax, line=True, color="red")
 
         plt.xlabel('x[m]')
