@@ -11,15 +11,16 @@ from messages import OccupancyGrid, Pose, Path, Odometry
 
 from .astar import AStar
 from .const import (
-    SENSOR, OBSTACLE_PENALTY_FACTOR,
+    SENSOR,
     MIN_CELLS_PER_CENTROID,
     ASTAR_TOLERANCE_FACTOR,
     OBSTACLE_GROWTH_FACTOR,
+    OBSTACLE_PENALTY_FACTOR
 )
 from utils import (
     pose_to_point, point_to_pose, points_to_path, path_to_points,
     bresenham_line, path_length, euclidean_distance,
-    map_to_world, world_to_map,
+    map_to_world, world_to_map
 )
 
 

@@ -2,7 +2,6 @@
 
 import numpy as np
 
-
 STEP_SIZE = 0.1
 ROBOT_SIZE = 0.3
 MAP_RESOLUTION = 0.1
