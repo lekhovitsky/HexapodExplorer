@@ -22,15 +22,28 @@ The detailed description of individual components follows.
 
 ## Trajectory Following
 
+The code for the locomotion part was provided in advance, so the only goal was to implement the navigation part, which produces a twist to steer the robot's motion towards a given goal.
 
+Most of the logic is implemented in `HexapodController.make_twist` method. The twist has two components, _linear_ and _angular_. The rule for a linear component is to go full speed unless close enough to the goal (determined by the `SLOWDOWN_DISTANCE`). The angular component is given by the angle between the current and the desired directions, multiplied by a `TURNING_SPEED`. Finally, if the angular component is large enough, the linear one gets decreased. This allows the robot to make large turns staying in a single place, which is healthy for collision management. Both components are then clipped to the range `[-1; 1]` and used to steer the robot's legs.
+
+Once the robot is close enough to the goal, defined by `DELTA_DISTANCE`, it stops, signaling that the goal is reached and the new one is needed.
+
+See `tests/test_walking.py` for an example.
 
 ## Mapping
 
 
 
+See `tests/test_mapping.py` for an example.
+
 ## Frontier Detection
 
 
 
+See `tests/test_frontiers.py` for an example.
+
 ## Path Planning
 
+
+
+See `tests/test_planning.py` for an example.

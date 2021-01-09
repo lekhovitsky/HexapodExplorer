@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
+"""
+Test the trajectory following component by executing the hard-coded path
+in a given environment.
 
-import sys
+Open assets/scene1_plain.ttt in CoppeliaSim and run the script.
+"""
+
 import time
 import matplotlib.pyplot as plt
 

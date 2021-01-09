@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+"""
+Test the frontier-detection component.
+"""
 
-import sys
 import pickle
 
 import numpy as np

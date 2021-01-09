@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Test the path-planning component by building the paths in four different maps.
+
+Outputs the optimal, robust and simplified paths for every map, given the path exists.
+"""
 
 import pickle
 
